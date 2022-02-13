@@ -2,18 +2,32 @@ import type { NextPage } from 'next';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useItem } from '../hooks/useItem';
+import { v4 as uuidv4 } from 'uuid';
 
 const Home: NextPage = () => {
   const { register, handleSubmit } = useForm();
-  const { getItems, registerItem, items, message, loading } = useItem();
+  const {
+    getItems,
+    registerItem,
+    uploadFileToBlob,
+    getBlobs,
+    items,
+    message,
+    loading,
+    blobs,
+  } = useItem();
 
   useEffect(() => {
     getItems();
-  }, [getItems]);
+    getBlobs();
+  }, [getItems, getBlobs]);
 
   const onClickSave = (formData: any) => {
     if (formData.files[0]) {
-      registerItem(formData.files[0].name);
+      const newFileName =
+        uuidv4() + '.' + formData.files[0].name.split('.').pop();
+      uploadFileToBlob(formData.files[0], newFileName);
+      registerItem(newFileName);
     }
   };
 
@@ -37,6 +51,17 @@ const Home: NextPage = () => {
                   {item.name} - {item.createdAt}
                 </li>
               );
+            })}
+        </ul>
+      )}
+      <h2>Blobs in Container</h2>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <ul>
+          {blobs &&
+            blobs.map((blob, key) => {
+              return <li key={key}>{blob}</li>;
             })}
         </ul>
       )}
